@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 from itertools import imap
 import threading
 import time
@@ -32,12 +33,10 @@ SCRIPT_ADDRESS = 5
 def rev_hex(s):
     return s.decode('hex')[::-1].encode('hex')
 
-
 def int_to_hex(i, length=1):
     s = hex(i)[2:].rstrip('L')
-    s = "0"*(2*length - len(s)) + s
+    s = "0" * (2 * length - len(s)) + s
     return rev_hex(s)
-
 
 def var_int(i):
     if i < 0xfd:
@@ -49,20 +48,16 @@ def var_int(i):
     else:
         return "ff" + int_to_hex(i, 8)
 
-
 Hash = lambda x: hashlib.sha256(hashlib.sha256(x).digest()).digest()
-
 
 hash_encode = lambda x: x[::-1].encode('hex')
 
-
 hash_decode = lambda x: x.decode('hex')[::-1]
-
 
 def header_to_string(res):
     pbh = res.get('prev_block_hash')
     if pbh is None:
-        pbh = '0'*64
+        pbh = '0' * 64
 
     return int_to_hex(res.get('version'), 4) \
         + rev_hex(pbh) \
@@ -71,10 +66,8 @@ def header_to_string(res):
         + int_to_hex(int(res.get('bits')), 4) \
         + int_to_hex(int(res.get('nonce')), 4)
 
-
 def hex_to_int(s):
     return int('0x' + s[::-1].encode('hex'), 16)
-
 
 def header_from_string(s):
     return {
@@ -86,10 +79,7 @@ def header_from_string(s):
         'nonce': hex_to_int(s[76:80]),
     }
 
-
 ############ functions from pywallet #####################
-
-
 
 def hash_160(public_key):
     try:
@@ -101,15 +91,12 @@ def hash_160(public_key):
         md = ripemd.new(hashlib.sha256(public_key).digest())
         return md.digest()
 
-
 def public_key_to_pubkey_address(public_key):
     return hash_160_to_pubkey_address(hash_160(public_key))
-
 
 def public_key_to_bc_address(public_key):
     """ deprecated """
     return public_key_to_pubkey_address(public_key)
-
 
 def hash_160_to_pubkey_address(h160, addrtype=None):
     """ deprecated """
@@ -117,19 +104,16 @@ def hash_160_to_pubkey_address(h160, addrtype=None):
         addrtype = PUBKEY_ADDRESS
     return hash_160_to_address(h160, addrtype)
 
-
 def hash_160_to_pubkey_address(h160):
     return hash_160_to_address(h160, PUBKEY_ADDRESS)
-
 
 def hash_160_to_script_address(h160):
     return hash_160_to_address(h160, SCRIPT_ADDRESS)
 
-
-def hash_160_to_address(h160, addrtype = 0):
+def hash_160_to_address(h160, addrtype=0):
     """ Checks if the provided hash is actually 160bits or 20 bytes long and returns the address, else None
     """
-    if h160 is None or len(h160) is not 20:
+    if h160 is None or len(h160) != 20:
         return None
     vh160 = chr(addrtype) + h160
     h = Hash(vh160)
@@ -137,11 +121,10 @@ def hash_160_to_address(h160, addrtype = 0):
     return b58encode(addr)
 
 def bc_address_to_hash_160(addr):
-    if addr is None or len(addr) is 0:
+    if addr is None or len(addr) == 0:
         return None
     bytes = b58decode(addr, 25)
     return bytes[1:21] if bytes is not None else None
-
 
 def b58encode(v):
     """encode v, which is a string of bytes, to base58."""
@@ -166,8 +149,7 @@ def b58encode(v):
         else:
             break
 
-    return (__b58chars[0]*nPad) + result
-
+    return (__b58chars[0] * nPad) + result
 
 def b58decode(v, length):
     """ decode v into a string of len bytes."""
@@ -189,62 +171,15 @@ def b58decode(v, length):
         else:
             break
 
-    result = chr(0)*nPad + result
+    result = chr(0) * nPad + result
     if length is not None and len(result) != length:
         return None
 
     return result
 
-
 def EncodeBase58Check(vchIn):
     hash = Hash(vchIn)
     return b58encode(vchIn + hash[0:4])
 
-
 def DecodeBase58Check(psz):
-    vchRet = b58decode(psz, None)
-    key = vchRet[0:-4]
-    csum = vchRet[-4:]
-    hash = Hash(key)
-    cs32 = hash[0:4]
-    if cs32 != csum:
-        return None
-    else:
-        return key
-
-
-
-
-########### end pywallet functions #######################
-
-def random_string(length):
-    with open("/dev/urandom", 'rb') as f:
-        return b58encode( f.read(length) )
-
-def timestr():
-    return time.strftime("[%d/%m/%Y-%H:%M:%S]")
-
-
-
-### logger
-import logging
-import logging.handlers
-
-logger = logging.getLogger('electrum')
-
-def init_logger(logfile):
-    hdlr = logging.handlers.WatchedFileHandler(logfile)
-    formatter = logging.Formatter('%(asctime)s %(message)s', "[%d/%m/%Y-%H:%M:%S]")
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr) 
-    logger.setLevel(logging.INFO)
-
-
-def print_log(*args):
-    logger.info(" ".join(imap(str, args)))
-
-def print_warning(message):
-    logger.warning(message)
-
-
-
+    vchRet = b58decode(psz, None
